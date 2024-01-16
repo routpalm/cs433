@@ -1,4 +1,6 @@
-# Team Members: Geoff, Joseph and Nick
+# Passkeys and public key cryptography: The future of authentication
+
+## Team Members: Geoff, Joseph and Nick
 
 ## Problem Statement
 The current security problem we would like to address is focused primarily on human error, phishing and passwords. Passwords have provided a relatively secure system for users to access many different accounts on different servers and hosts. However passwords have some issues such as data breaches (e.g. if a server host has a data breach and your password is in their data base, malicious attackers could use this password to either get into this account or others with the same password). Passwords have the capability to be fairly difficult to breach if a random long password chosen. However in practice most users of passwords may choose a few passwords that often represent a dictionary word. (2)This can pose some threats if a human gets phished for one of their passwords opening up their accounts for access by malicious attackers. Our goal for this project is to implement a client server system that implements the FIDO concept of passkeys. 
