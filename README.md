@@ -1,4 +1,4 @@
-# A Blockchain solution to BGP Route Hijacking and False Advertisment
+# A Blockchain solution to BGP Route Hijacking
 
 ## Team Members: Geoff, Joseph and Nick
 
