@@ -35,6 +35,6 @@ cert = generate_cert(private_key)
 
 # example roa
 roa= objects.ROA(12345, [{'address': '192.168.0.0', 'max_length': 24}],cert)
-signature = sign_data(roa, private_key).hex()
+signature = sign_data(roa.to_dict(), private_key).hex()
 print("ROA:", roa)
-print(ROAservertest.verify_roa(roa,signature=signature))
+print(ROAservertest.verify_roa(roa.to_dict(),signature=signature))

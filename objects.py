@@ -16,5 +16,11 @@ class ROA:
           self.as_id = as_id
           self.ip_addr_blocks = ip_addr_blocks
           self.certificate = certificate.serialize().decode()
+    def to_dict(self): # needed so we can serialize with json
+         return {
+            'as_id': self.as_id,
+            'ip_addr_blocks': self.ip_addr_blocks,
+            'certificate': self.certificate
+         }
     def __str__(self):
          return f"AS_ID: {self.as_id}\nIP_ADDR_BLOCKS: {self.ip_addr_blocks}\nCERTIFICATE: {self.certificate}\n"
