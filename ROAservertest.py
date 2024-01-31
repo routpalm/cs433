@@ -24,7 +24,7 @@ def verify_signature(data, signature, public_key):
             padding.PKCS1v15(),
             hashes.SHA256()
         )
-        logging.info("signature is valid.")
+        print("signature is valid.")
         return True # signature valid
     except Exception as e:
         logging.error(f"signature verification failed, idiot: {e}")
