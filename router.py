@@ -19,25 +19,31 @@ class EBGPRouter:
     def advertise_route(self, route):
         self.routes.append(route)
         # update routing table with this new route, assuming self path is the best
-        self.routing_table[route] = [self.as_number]
+        as_path = [self.as_number]
+        self.routing_table[route] = as_path
         for neighbor in self.neighbors:
-            self.send_route(route, neighbor, self.ip)
+            self.send_route(route, neighbor, self.ip, as_path)
 
-    def send_route(self, route, neighbor_ip, source_ip):
+    def send_route(self, route, neighbor_ip, source_ip,as_path):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 neighbor_as, neighbor_port = self.neighbors[neighbor_ip]
-                s.connect((neighbor_ip, neighbor_port))  # use the neighbor's port
-                route_info = json.dumps({"route": route, "as_number": self.as_number, "source_ip": source_ip})
+                route_info = json.dumps(
+                    {"route": route, "as_number": self.as_number, "source_ip": source_ip, "as_path": as_path})
+                s.connect((neighbor_ip, neighbor_port))
                 s.sendall(route_info.encode('utf-8'))
-                print(f"as {self.as_number} sending route to {neighbor_ip}")
             except ConnectionRefusedError:
                 print(f"Connection to {neighbor_ip} refused")
 
     def routing_decision(self, route_info, route):
-        # update routing table if new or shorter path (w/o blockchain validation)
-        if route not in self.routing_table or len(self.routing_table[route]) > len(route_info['path']) + 1:
-            self.routing_table[route] = [self.as_number] + route_info.get('path', [])
+        as_path = route_info.get('as_path', [])
+        # prevent routing loops: checking if this router's ASN is already in AS_PATH (redundant in default ebgp)
+        if self.as_number in as_path:
+            return  # loop -> ignore route
+
+        # update routing table if the route is new or if the received AS_PATH is shorter than the current one
+        if route not in self.routing_table or len(self.routing_table[route]) > len(as_path):
+            self.routing_table[route] = as_path
 
     def handle_client(self, connection, address):
         try:
@@ -48,16 +54,25 @@ class EBGPRouter:
                     route = route_info['route']
                     as_number = route_info['as_number']
                     source_ip = route_info.get('source_ip', address[0])
-                    print(f"AS {self.as_number} received route {route} from AS {as_number}")
+                    received_as_path = route_info.get('as_path', [])
 
-                    # would be overwritten in securebgp router
+                    print(
+                        f"AS {self.as_number} received route {route} from AS {as_number} with AS_PATH: {received_as_path}")
+
+                    # prevent routing loop
+                    if self.as_number in received_as_path:
+                        print(f"routing loop detected for route {route}, dropping advertisement")
+                        return  # loop->ignore
+                    new_as_path = received_as_path + [self.as_number]
+
+                    # Make a routing decision (could replace or update existing route)
                     self.routing_decision(route_info, route)
 
-                    # forward to all neighbors except the source
+                    # Forward to all neighbors except the source
                     for neighbor_ip in self.neighbors:
                         neighbor_as, neighbor_port = self.neighbors[neighbor_ip]
-                        if neighbor_as != as_number:  # check to avoid sending back to the source
-                            self.send_route(route, neighbor_ip,self.ip)
+                        if neighbor_as != as_number:  # Avoid sending back to the source
+                            self.send_route(route, neighbor_ip, self.ip, new_as_path)
 
         except Exception as e:
             print(f"An error occurred in handle_client thread: {e}")
@@ -99,7 +114,7 @@ def verify_routes(routers, advertised_route):
     time.sleep(2)
     for router in routers:
         if advertised_route in router.routing_table:
-            print(f"Router AS{router.as_number} knows about route {advertised_route}")
+            print(f"Router AS{router.as_number} knows about route {advertised_route}: {router.routing_table}")
         else:
             print(f"Router AS{router.as_number} does NOT know about route {advertised_route}")
 
