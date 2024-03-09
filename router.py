@@ -14,7 +14,7 @@ class EBGPRouter:
         self.routing_table = {}  # routing table mapping prefixes to paths
 
     def add_neighbor(self, neighbor_ip, neighbor_as, neighbor_port):
-        self.neighbors[neighbor_ip] = (neighbor_as, neighbor_port)
+        self.neighbors[neighbor_as] = (neighbor_ip, neighbor_port)
 
     def advertise_route(self, route):
         self.routes.append(route)
@@ -23,11 +23,14 @@ class EBGPRouter:
         self.routing_table[route] = as_path
         for neighbor in self.neighbors:
             self.send_route(route, neighbor, self.ip, as_path)
+            time.sleep(1)
 
-    def send_route(self, route, neighbor_ip, source_ip,as_path):
+    def send_route(self, route, neighbor_as, source_ip,as_path):
+
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
-                neighbor_as, neighbor_port = self.neighbors[neighbor_ip]
+                neighbor_ip, neighbor_port = self.neighbors[neighbor_as]
+                print(f"AS {self.as_number} sending route {route} to {neighbor_as}")
                 route_info = json.dumps(
                     {"route": route, "as_number": self.as_number, "source_ip": source_ip, "as_path": as_path})
                 s.connect((neighbor_ip, neighbor_port))
@@ -121,5 +124,8 @@ def verify_routes(routers, advertised_route):
 # test
 router1, router2, router3 = setup_routers()
 start_routers([router1, router2, router3])
-router1.advertise_route("192.168.1.0/24")
-verify_routes([router1, router2, router3], "192.168.1.0/24")
+#router1.advertise_route("192.168.1.0/24")
+router2.advertise_route("192.168.2.0/24")
+time.sleep(1)
+#verify_routes([router1, router2, router3], "192.168.1.0/24")
+verify_routes([router1, router2, router3], "192.168.2.0/24")
