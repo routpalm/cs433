@@ -65,13 +65,13 @@ class EBGPRouter:
                         return  # loop->ignore
                     new_as_path = received_as_path + [self.as_number]
 
-                    # Make a routing decision (could replace or update existing route)
+                    # make a routing decision (could replace or update existing route)
                     self.routing_decision(route_info, route)
 
-                    # Forward to all neighbors except the source
+                    # forward to all neighbors except source
                     for neighbor_ip in self.neighbors:
                         neighbor_as, neighbor_port = self.neighbors[neighbor_ip]
-                        if neighbor_as != as_number:  # Avoid sending back to the source
+                        if neighbor_as != as_number:  # avoid sending back to the source
                             self.send_route(route, neighbor_ip, self.ip, new_as_path)
 
         except Exception as e:
