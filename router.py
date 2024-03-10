@@ -73,9 +73,8 @@ class EBGPRouter:
 
                     # forward to all neighbors except source
                     for neighbor in self.neighbors:
-                        neighbor_ip, neighbor_port = self.neighbors[neighbor]
                         if neighbor != as_number:  # avoid sending back to the source
-                            self.send_route(route, neighbor_ip, self.ip, new_as_path)
+                            self.send_route(route, neighbor, self.ip, new_as_path)
 
         except Exception as e:
             print(f"An error occurred in handle_client thread: {e}")
