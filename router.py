@@ -72,9 +72,9 @@ class EBGPRouter:
                     self.routing_decision(route_info, route)
 
                     # forward to all neighbors except source
-                    for neighbor_ip in self.neighbors:
-                        neighbor_as, neighbor_port = self.neighbors[neighbor_ip]
-                        if neighbor_as != as_number:  # avoid sending back to the source
+                    for neighbor in self.neighbors:
+                        neighbor_ip, neighbor_port = self.neighbors[neighbor]
+                        if neighbor != as_number:  # avoid sending back to the source
                             self.send_route(route, neighbor_ip, self.ip, new_as_path)
 
         except Exception as e:
@@ -124,8 +124,8 @@ def verify_routes(routers, advertised_route):
 # test
 router1, router2, router3 = setup_routers()
 start_routers([router1, router2, router3])
-#router1.advertise_route("192.168.1.0/24")
+router1.advertise_route("192.168.1.0/24")
 router2.advertise_route("192.168.2.0/24")
 time.sleep(1)
-#verify_routes([router1, router2, router3], "192.168.1.0/24")
+verify_routes([router1, router2, router3], "192.168.1.0/24")
 verify_routes([router1, router2, router3], "192.168.2.0/24")
