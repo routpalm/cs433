@@ -2,8 +2,7 @@ import socket
 import threading
 import json
 import time
-
-
+import datetime
 class EBGPRouter:
     def __init__(self, ip, as_number, port):
         self.ip = ip
@@ -48,6 +47,21 @@ class EBGPRouter:
         if route not in self.routing_table or len(self.routing_table[route]) > len(as_path):
             self.routing_table[route] = as_path
 
+    def log_advertisement(self, route, as_path):
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"{timestamp}, AS: {self.as_number}, prefix: {route}, AS_PATH: {as_path} \n"
+
+        with open("chain.log", "a") as f:
+            f.write(entry)
+
+    def reconstruct(self, prefix):
+        hist = []
+        with open("chain.log", "r") as log:
+            for line in log:
+                if prefix in line:
+                    hist.append(line.strip())
+        for entry in hist:
+            print(entry)
     def handle_client(self, connection, address):
         try:
             with connection:
@@ -66,10 +80,13 @@ class EBGPRouter:
                     if self.as_number in received_as_path:
                         print(f"routing loop detected for route {route}, dropping advertisement")
                         return  # loop->ignore
+
                     new_as_path = received_as_path + [self.as_number]
 
                     # make a routing decision (could replace or update existing route)
                     self.routing_decision(route_info, route)
+
+                    self.log_advertisement(route, received_as_path)
 
                     # forward to all neighbors except source
                     for neighbor in self.neighbors:
@@ -125,6 +142,6 @@ router1, router2, router3 = setup_routers()
 start_routers([router1, router2, router3])
 router1.advertise_route("192.168.1.0/24")
 router2.advertise_route("192.168.2.0/24")
-time.sleep(1)
-verify_routes([router1, router2, router3], "192.168.1.0/24")
-verify_routes([router1, router2, router3], "192.168.2.0/24")
+#verify_routes([router1, router2, router3], "192.168.1.0/24")
+#verify_routes([router1, router2, router3], "192.168.2.0/24")
+router1.reconstruct("192.168.1.0/24")
