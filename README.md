@@ -1,4 +1,4 @@
-# A Blockchain solution to BGP Route Hijacking
+# A Blockchain solution to BGP Myopia
 
 ## Team Members: Geoff, Joseph and Nick
 
