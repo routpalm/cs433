@@ -6,23 +6,19 @@ class Secure_EBGP(EBGPRouter):
         super().__init__(ip, as_number, port)
         self.blockchain = blockchain
 
-    def write_block_to_blockchain(self, entry):
+    def write_block_to_blockchain(self, data):
         """
-        Checks to see if path can be validated by other paths in the block chain
-        and adds it if so.
+        Creates a block and adds the data to the block. 
+        Then writes the block to blockchain.
 
         Inputs:
-        -path: the recieved update of a path that would like
-        to be written to the blockchain
-        Path will be a tuple of (Origin AS, Prefix, Path, Signature of AS writing the block)
-        
+        -data: May be two forms defined in simple_blockchain.py data for a block 
         Return: True if the path was successfully writen to the blockchain
         """
         next_index = self.blockchain.get_latest_block().index + 1
         prev_hash = self.blockchain.get_latest_block().hash
-        block_to_add = Block(next_index, prev_hash, entry)
+        block_to_add = Block(next_index, prev_hash, data)
         self.blockchain.add_block(block_to_add)
-        print(f"AS{entry[3]} succesfuly wrote block to chain")
         return True
     
     def search_for_path(self, path):
@@ -32,51 +28,86 @@ class Secure_EBGP(EBGPRouter):
             
         return False
 
-    def verify_path(self, entry):
+    def verify_path(self, path: list):
         """
         This method will take an entry (of the form Block.data) and attempt to form
         and verify the entries path from the blockchain.
-        """
-        #Verify the path can be produced from existing paths in blockchain
-        path_build = [0 for i in range(len(entry[1])-1)]
-        for asx in range(len(entry[1])-1):
-            #This is the as that sent the path update so we check neighbors of as 
-            if asx+1 == len(entry[1])-1:
-                valid_neighbor = False
-                for neighbor in self.blockchain.as_neighbors[entry[1][asx+1]]:
-                    if neighbor == entry[1][asx]:
-                        #the neighbor is a valid neighbor
-                        path_build[asx] = 1
-                        valid_neighbor = True
-                        break
-                if valid_neighbor:
-                    break
-                else:
-                    print("Not a neighbor")
-                    return False  
-            asy = asx + 1
-            for block in self.blockchain.chain:
-                confirmed = False
-                for asz in range(len(block.data[1])-1):
-                    if block.data[1][asz] == entry[1][asx] and block.data[1][asz+1] == entry[1][asy]:
-                        path_build[asx] = 1
-                        confirmed = True
-                        break
-                    if block.data[1][asz] == entry[1][asy] and block.data[1][asz+1] == entry[1][asx]:
-                        path_build[asx] = 1
-                        confirmed = True
-                        break
-                #If it was verified that the path from asx to asy exists in blockchain break
-                if confirmed:
-                    break
-        verified = True
-        for i in range(len(entry[1])-1):
-            if path_build[i] == 0:
-                verified = False
-                break
 
-        if not verified:
-            print(f"AS{entry[3]} failed to add {entry[1]}: path could not be validated {path_build}")
-            return False
-        else:
-            return True
+        Inputs:
+            -path : list [startAS, ..., endAS]
+        """
+        #Verify the path can be produced from existing secure routers neighbors in blockchain
+        path_build = [0 for i in range(len(path)-1)]
+        path_build_index = 0
+        for asx, asy in zip(path, path[1:]):
+            asx_is_secure = False
+            link_confirmed = False
+            asx_is_secure, link_confirmed = self.confirm_neighbor(asx, asy)
+            
+            if link_confirmed == True:
+                #asx has neighbor asy; mark this link as a real link;
+                path_build[path_build_index] = 1
+                path_build_index += 1
+                #asx = asy; asy = asz; check asx is neighbors with asy
+                continue
+           
+            elif asx_is_secure == True and link_confirmed == False:
+                #Then clearly asx does not have a neighbor asy and cannot be verified
+                return False
+    
+            elif asx_is_secure == False:
+                #asx is not a secure ebgp router. Must search asy's neighbors for asx
+                asy_is_secure, asy_link_conf = self.confirm_neighbor(asy, asx)
+                #Now asy must be secure and asx must be a neighbor of asy
+                if asy_is_secure and asy_link_conf:
+                    path_build[path_build_index] = 1
+                    path_build_index +=1
+                    continue
+                else:
+                    #Since there is no way to 100% ensure asx can reach asy the path cant be verified
+                    return False
+                
+        for i in path_build:
+            if i == 0:
+                return False
+        return True
+
+    def confirm_neighbor(self, asx, asy):
+        """
+        Function to take two as's and confirm whether asx has a neighbor asy
+        by checking the blockchain.
+
+        Output: Will output whether asx is a secure router and whether asy 
+        is a neighbor of asx
+        """
+        asx_is_secure = False
+        link_confirmed = False
+        for block in self.blockchain.chain:
+                if block.data[0] != "N":
+                    #This means the block is a path update so skip it
+                    continue
+                
+                if block.data[1] == asx:
+                    #we have reached the neighbors of asx block
+                    asx_is_secure = True
+                    for neighbor in block.data[2]:
+                        if neighbor == asy:
+                            #asx <-> asy confirmed
+                            link_confirmed = True
+                            break
+        return asx_is_secure, link_confirmed
+        
+    '''
+    add neighbors will be called when a AS joins our system. It will create a neighbor block
+    and add the block to the blockchain. Requires list of neighbors input.
+    '''
+    def add_as_neighbors(self, neighbors: list):
+        data = ["N", self.as_number, neighbors]
+        self.write_block_to_blockchain(data)
+
+    '''
+    Add an update to the blockchain.
+    '''
+    def add_path_to_chain(self, prefix, src_as_number, src_ip, as_path):
+        data = ["P", prefix, src_as_number, src_ip, as_path]
+        self.write_block_to_blockchain(data)

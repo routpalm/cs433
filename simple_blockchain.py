@@ -32,11 +32,15 @@ class Block:
         '''
         self.timestamp = timestamp or time.time() 
         '''
-            Data should be a list of the form [Origin AS, Path, Prefix, signature]
-            -Origin AS (string): this is the AS that claims to have possesion of the prefix
-            -Path (string): string of integers where leftmost is start of path
-            -Prefix: the given IP prefix
-            -Signature: the person who wrote the block's signature
+            Data will be a list where the first index is the type of block:
+            block 1 ("N"): ["N", AS, [neighbors]]
+                -AS is the As writting to block
+                -[neighbors] is a list of AS neighbors
+            block 2 ("P"): ["P". prefix, src_as_number, src_ip, as_path]
+                -prefix is the destination prefix for the path.
+                -src_as_number is where the update originated from
+                -src_ip is the ip of the src_as_number
+                -as_path is the path that the update has traveled through.
         '''
         self.data = data
         '''
@@ -64,11 +68,6 @@ class Blockchain:
             chain here is basically an array 
         '''
         self.chain = [self.create_genesis_block()]
-
-        '''
-            This will contain each subscribed as's neighbors for verification of paths
-        '''
-        self.as_neighbors = {}
     
     '''
         The genesis block is the first block in the chain. it will always have the same hash value.
@@ -105,46 +104,3 @@ class Blockchain:
             if cur_block.previous_hash != prev_block.hash:
                 return False
         return True
-    
-    def add_as_neighbors(self, as_num: str, neighbors: list):
-        self.as_neighbors[as_num]=neighbors
-    
-
-'''
-    testing
-'''
-# init chain
-test_chain = Blockchain()
-
-# add blocks
-test_chain.add_block(Block(1, test_chain.get_latest_block().hash, ["1", "1", "128.0.0/24", "1"]))
-test_chain.add_block(Block(2, test_chain.get_latest_block().hash, ["2", "2", "128.1.0/24", "2"]))
-test_chain.add_block(Block(2, test_chain.get_latest_block().hash, ["3", "3", "128.2.0/24", "3"]))
-#add neighbors
-test_chain.add_as_neighbors("1", ["2"])
-test_chain.add_as_neighbors("2", ["1"])
-test_chain.add_as_neighbors("3", ["2"])
-print(test_chain.as_neighbors)
-
-# check validity
-print("valid? (scenario 0: simple test)", test_chain.is_valid())
-
-# print blocks
-for block in test_chain.chain:
-    print(f"Block {block.index} - Data: {block.data} - Hash: {block.hash}")
-
-# tampering scenario numero uno (remember 'pointers' in python) 
-# block data is modified
-invalid_block = test_chain.chain[1]
-invalid_block.data = "invalid"
-invalid_block.hash = invalid_block.calculate_hash()
-
-# check validity
-print("valid? (scenario 1)", test_chain.is_valid())
-
-# tampering scenario numero due
-# chain is broken due to changing hash values
-test_chain.chain[2].previous_hash = test_chain.chain[0].hash
-
-# check validity
-print("valid? (scenario 2)", test_chain.is_valid())

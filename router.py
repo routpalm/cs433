@@ -111,10 +111,10 @@ class EBGPRouter:
     def start(self):
         listener_thread = threading.Thread(target=self.listen_for_routes)
         listener_thread.start()
+"""
 
-"""
     TEST METHODS
-"""
+
 def setup_routers():
     router1 = EBGPRouter('127.0.0.1', 65001, 5001)
     router2 = EBGPRouter('127.0.0.1', 65002, 5002)
@@ -145,3 +145,5 @@ router2.advertise_route("192.168.2.0/24")
 #verify_routes([router1, router2, router3], "192.168.1.0/24")
 #verify_routes([router1, router2, router3], "192.168.2.0/24")
 router1.reconstruct("192.168.1.0/24")
+
+"""
