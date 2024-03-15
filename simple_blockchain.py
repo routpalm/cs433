@@ -3,9 +3,10 @@
     referencing https://medium.com/pythoneers/building-a-blockchain-from-scratch-with-python-489e7116142e
     and https://www.activestate.com/blog/how-to-build-a-blockchain-in-python/
 '''
+
+
 import hashlib
 import time
-
 
 
 '''
@@ -62,6 +63,7 @@ class Block:
         prehashed = str(self.index) + str(self.timestamp) + str(self.data) + str(self.nonce)
         return hashlib.sha256(prehashed.encode()).hexdigest()
     
+
 class Blockchain:
     def __init__(self):
         '''
@@ -69,33 +71,34 @@ class Blockchain:
         '''
         self.chain = [self.create_genesis_block()]
     
-    '''
-        The genesis block is the first block in the chain. it will always have the same hash value.
-    '''
+
     def create_genesis_block(self):
+        '''
+        The genesis block is the first block in the chain. it will always have the same hash value.
+        '''
         return Block(0, "0", "Genesis Block")
     
-    '''
-        gets most recently added block so that new blocks can get the hash of the previous block easier
-    '''
     def get_latest_block(self):
+        '''
+        gets most recently added block so that new blocks can get the hash of the previous block easier
+        '''
         return self.chain[-1]
-    
-    '''
-        mechanism for adding new blocks
-    '''
+
     def add_block(self, new_block):
+        '''
+        mechanism for adding new blocks
+        '''
         new_block.previous_hash = self.get_latest_block().hash
         new_block.hash = new_block.calculate_hash()
         self.chain.append(new_block)
 
-    '''
+    def is_valid(self):
+        '''
         checks integrity of the entire chain. iterates through all blocks (except genesis) and checks:
         1. whether the hash of each block matches the hash it *should* have
         2. whether the previous hash of each block matches the hash of the previous block in the chain
         if any conditions fail, chain is invalid (tampering)
-    '''
-    def is_valid(self):
+        '''
         for i in range(1,len(self.chain)):
             cur_block = self.chain[i]
             prev_block = self.chain[i-1]
