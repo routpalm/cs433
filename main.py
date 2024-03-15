@@ -1,5 +1,5 @@
 from simulations.simulation import *
-import simulations.sim1
+from simulations import sim1, sim2
 import sys
 
 

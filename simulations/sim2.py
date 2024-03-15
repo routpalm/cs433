@@ -1,10 +1,11 @@
 from .simulation import *
 from router import *
+import sys
 
-def sim1():
+def sim2():
     """
-    Simulation 1:
-        Nine regular eBGP routers communicate.
+    Simulation 2:
+        Malicious router hijacks route. This simulation is related to sim1.py
     """
     router1 = EBGPRouter('localhost', 1, 5001)
     router2 = EBGPRouter('localhost', 2, 5002)
@@ -49,6 +50,7 @@ def sim1():
     router8.start()
     router9.start()
     router9.advertise_route("192.168.1.0/24")
+    router5.advertise_route("192.168.1.0/24")  # < Malicious Announcement
     print("AS 1:", router1.routing_table["192.168.1.0/24"])
     print("AS 2:", router2.routing_table["192.168.1.0/24"])
     print("AS 3:", router3.routing_table["192.168.1.0/24"])
@@ -60,4 +62,4 @@ def sim1():
     print("AS 9:", router9.routing_table["192.168.1.0/24"])
     print('Simulation ended. Press control + c to end this process.')
 
-Simulation().add(fun=sim1, num_id=1)
+Simulation().add(fun=sim2, num_id=2)
