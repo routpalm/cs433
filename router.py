@@ -13,9 +13,37 @@ class EBGPRouter:
         self.routing_table = {}  # routing table mapping prefixes to paths
 
     def add_neighbor(self, neighbor_ip, neighbor_as, neighbor_port):
+        """
+        Brief:
+            Add a neighbor AS to the "neighbors" dictionary. 
+        Usuage:
+            Call this function to allow this EGBPRouter to send_route to
+            another EGBPRouter via a socket connection.
+        Assumption:
+            This project assumes ASes know who their neighbor is. In a real-life
+            setting, ASes/eBGP routers need to perform an algorithm to learn who
+            their neighbor is.
+        Params:
+            neighbor_ip   (str): The IP address of the EBGPRouter. 
+            neighbor_as   (int): The AS number/Integer Identifier.
+            neighbor_port (int): The port number used to establish
+                                 a socket connection.
+        Example of Entry in Neighbor Dictionary:
+            self.neighbors[65000] = ('127.0.0.1', 5000)
+        """
         self.neighbors[neighbor_as] = (neighbor_ip, neighbor_port)
 
     def advertise_route(self, route):
+        """
+        Brief:
+            Advertise a route to all neighboring EGBPRouters. Also, update this
+            EGBPRouter's routing table with the newly advertised route.
+        Param:
+            route (str): A CIDR address, for example, '192.168.1.0/24'.
+        Note:
+            as_path (list[int]): the path of ASes to get to the announced route.
+            Initially, the path contains only this EGBPRouter's AS number.
+        """
         self.routes.append(route)
         # update routing table with this new route, assuming self path is the best
         as_path = [self.as_number]
