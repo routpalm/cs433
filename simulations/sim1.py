@@ -1,11 +1,10 @@
 from .simulation import *
 from router import *
-import sys
 
 def sim1():
     """
     Simulation 1:
-        Three regular routers talk to each other.
+        Nine regular eBGP routers communicate.
     """
     router1 = EBGPRouter('localhost', 1, 5001)
     router2 = EBGPRouter('localhost', 2, 5002)
