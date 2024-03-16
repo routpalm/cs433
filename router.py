@@ -13,6 +13,15 @@ class EBGPRouter:
         self.routes = []  # list of routes advertised by this router
         self.routing_table = {}  # routing table mapping prefixes to paths
 
+    def add_neighbors(self, neighbor_list: list):
+        """ add multiple neighbors at once """
+        for neighbor in neighbor_list:
+            self.add_neighbor(*neighbor)
+        self._advanced_feature(
+            'neighbor announcement', 
+            json.dumps({"neighbor_list": neighbor_list}
+        ))
+
     def add_neighbor(self, neighbor_ip, neighbor_as, neighbor_port):
         self.neighbors[neighbor_as] = (neighbor_ip, neighbor_port)
 
@@ -21,6 +30,7 @@ class EBGPRouter:
         # update routing table with this new route, assuming self path is the best
         as_path = [self.as_number]
         self.routing_table[route] = []
+        self._advanced_feature('route advertisement', route)
         for neighbor in self.neighbors:
             self.send_route(route, neighbor, self.ip, as_path)
             time.sleep(1)
@@ -74,7 +84,7 @@ class EBGPRouter:
                     as_number = route_info['as_number']
                     source_ip = route_info.get('source_ip', address[0])
                     received_as_path = route_info.get('as_path', [])
-
+                    
                     # print(
                     #     f"AS {self.as_number} received route {route} from AS {as_number} with AS_PATH: {received_as_path}")
 
@@ -87,9 +97,8 @@ class EBGPRouter:
 
                     # make a routing decision (could replace or update existing route)
                     self.routing_decision(route_info, route)
-
                     self.log_advertisement(route, received_as_path)
-
+                    self._advanced_feature('received route', received_data)
                     # forward to all neighbors except source
                     for neighbor in self.neighbors:
                         if neighbor != as_number:  # avoid sending back to the source
@@ -113,6 +122,14 @@ class EBGPRouter:
     def start(self):
         self.listener_thread = threading.Thread(target=self.listen_for_routes)
         self.listener_thread.start()
+
+    def _advanced_feature(self, keyword: str, json_data: str):
+        """
+            Brief: Normal eGBP routers do not do 'advanced features' 
+            Usuage: Implement in child class!
+        """
+        pass
+
 
 """
 

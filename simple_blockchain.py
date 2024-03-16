@@ -63,6 +63,9 @@ class Block:
         prehashed = str(self.index) + str(self.timestamp) + str(self.data) + str(self.nonce)
         return hashlib.sha256(prehashed.encode()).hexdigest()
     
+    def __str__(self) -> str:
+        return str(self.data)
+    
 
 class Blockchain:
     def __init__(self):
@@ -71,6 +74,13 @@ class Blockchain:
         '''
         self.chain = [self.create_genesis_block()]
     
+
+    def __str__(self) -> str:
+        """ Print the contents of the block chain """
+        msg = ""
+        for i in range(len(self.chain)):
+            msg += f"Entry {i}: {self.chain[i]} \n"
+        return msg
 
     def create_genesis_block(self):
         '''
@@ -107,3 +117,17 @@ class Blockchain:
             if cur_block.previous_hash != prev_block.hash:
                 return False
         return True
+    
+
+def main():
+    blockchain = Blockchain()
+    block_1 = Block(
+        blockchain.get_latest_block().index + 1,
+        blockchain.get_latest_block().hash,
+        ["N", 2, [1, 3, 4, 5]]
+        )
+    blockchain.add_block(block_1)
+    print(blockchain)
+
+if __name__ == "__main__":
+    main()

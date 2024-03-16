@@ -1,7 +1,9 @@
 from router import EBGPRouter
 from simple_blockchain import Block, Blockchain
+import json
 
-class Secure_EBGP(EBGPRouter):
+
+class SecureEBGP(EBGPRouter):
     def __init__(self, ip, as_number, port, blockchain):
         super().__init__(ip, as_number, port)
         self.blockchain = blockchain
@@ -101,8 +103,9 @@ class Secure_EBGP(EBGPRouter):
     add neighbors will be called when a AS joins our system. It will create a neighbor block
     and add the block to the blockchain. Requires list of neighbors input.
     '''
-    def add_as_neighbors(self, neighbors: list):
-        data = ["N", self.as_number, neighbors]
+    def _add_as_neighbors(self, json_data: str):
+        as_list = [n[1] for n in json.loads(json_data)["neighbor_list"]]
+        data = ["N", self.as_number, as_list]
         self.write_block_to_blockchain(data)
 
     '''
@@ -111,3 +114,7 @@ class Secure_EBGP(EBGPRouter):
     def add_path_to_chain(self, prefix, src_as_number, src_ip, as_path):
         data = ["P", prefix, src_as_number, src_ip, as_path]
         self.write_block_to_blockchain(data)
+
+    def _advanced_feature(self, keyword: str, json_data: str):
+        if keyword == "neighbor announcement":
+            self._add_as_neighbors(json_data)

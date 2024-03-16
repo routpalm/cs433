@@ -1,4 +1,4 @@
-from secure_router import Secure_EBGP
+from secure_router import SecureEBGP
 from simple_blockchain import Blockchain, Block
 from router import EBGPRouter
 
@@ -6,13 +6,18 @@ from router import EBGPRouter
 test_chain = Blockchain()
 
 #create secure routers
-AS1 = Secure_EBGP("128.0.0.1", 1, 1, test_chain)
-AS2 = Secure_EBGP("128.1.0.1", 2, 2, test_chain)
-AS3 = Secure_EBGP("128.2.0.1", 3, 3, test_chain)
-AS4 = Secure_EBGP("128.3.0.1", 4, 4, test_chain)
-AS5 = Secure_EBGP("128.4.0.1", 5, 5, test_chain)
-AS6 = Secure_EBGP("128.5.0.1", 6, 6, test_chain)
-
+AS1_config = ("localhost", 1, 5001)
+AS2_config = ("localhost", 2, 5002)
+AS3_config = ("localhost", 3, 5003)
+AS4_config = ("localhost", 4, 5004)
+AS5_config = ("localhost", 5, 5005)
+AS6_config = ("localhost", 6, 5006)
+AS1 = SecureEBGP(*AS1_config, test_chain)
+AS2 = SecureEBGP(*AS2_config, test_chain)
+AS3 = SecureEBGP(*AS3_config, test_chain)
+AS4 = SecureEBGP(*AS4_config, test_chain)
+AS5 = SecureEBGP(*AS5_config, test_chain)
+AS6 = SecureEBGP(*AS6_config, test_chain)
 '''
 Topology
     AS2 - AS4
@@ -25,22 +30,13 @@ AS1          AS6
 #!!!!Test 1!!!!
 print("-------------Test1-------------:")
 # add neighbors
-as1_n = [2,3]
-as2_n = [1,4]
-as3_n = [1,5]
-as4_n = [2,6]
-as5_n = [3,6]
-as6_n = [4,5]
-
-AS1.add_as_neighbors(as1_n)
-AS2.add_as_neighbors(as2_n)
-AS3.add_as_neighbors(as3_n)
-AS4.add_as_neighbors(as4_n)
-AS5.add_as_neighbors(as5_n)
-AS6.add_as_neighbors(as6_n)
-
-for block in test_chain.chain:
-    print(block.data)
+AS1.add_neighbors([AS2_config, AS3_config])
+AS2.add_neighbors([AS1_config, AS4_config])
+AS3.add_neighbors([AS1_config, AS5_config])
+AS4.add_neighbors([AS2_config, AS6_config])
+AS5.add_neighbors([AS3_config, AS6_config])
+AS6.add_neighbors([AS4_config, AS5_config])
+print(test_chain)
 
 #verify path from AS1
 result = AS1.verify_path([1,2,4,6])
@@ -53,25 +49,27 @@ print("-------------Test2-------------:")
 test2_chain = Blockchain()
 
 #create secure routers
-AS1 = Secure_EBGP("128.0.0.1", 1, 1, test2_chain)
-AS2 = EBGPRouter("128.1.0.1", 2, 2)
-AS3 = EBGPRouter("128.2.0.1", 3, 3)
-AS4 = Secure_EBGP("128.3.0.1", 4, 4, test2_chain)
-AS5 = Secure_EBGP("128.4.0.1", 5, 5, test2_chain)
-AS6 = EBGPRouter("128.5.0.1", 6, 6,)
+AS1_config = ("localhost", 1, 5001)
+AS2_config = ("localhost", 2, 5002)
+AS3_config = ("localhost", 3, 5003)
+AS4_config = ("localhost", 4, 5004)
+AS5_config = ("localhost", 5, 5005)
+AS6_config = ("localhost", 6, 5006)
+AS1 = SecureEBGP(*AS1_config, test2_chain)
+AS2 = EBGPRouter(*AS2_config)
+AS3 = EBGPRouter(*AS3_config)
+AS4 = SecureEBGP(*AS4_config, test2_chain)
+AS5 = SecureEBGP(*AS5_config, test2_chain)
+AS6 = EBGPRouter(*AS6_config)
+AS1.add_neighbors([AS2_config, AS3_config])
+AS2.add_neighbors([AS1_config, AS4_config])
+AS3.add_neighbors([AS1_config, AS5_config])
+AS4.add_neighbors([AS2_config, AS6_config])
+AS5.add_neighbors([AS3_config, AS6_config])
+AS6.add_neighbors([AS4_config, AS5_config])
+print(test2_chain)
 
-as1_n = [2,3]
-as4_n = [2,6]
-as5_n = [3,6]
-
-AS1.add_as_neighbors(as1_n)
-AS4.add_as_neighbors(as4_n)
-AS5.add_as_neighbors(as5_n)
-
-for block in test2_chain.chain:
-    print(block.data)
 #Secure Paths:
-
 result2 = AS1.verify_path([1,2,4,6])
 print(f"Path: 1, 2, 4, 6 is {result2}")
 result3 = AS1.verify_path([1,3,5,6])
@@ -90,20 +88,21 @@ print("-------------Test3-------------:")
 test3_chain = Blockchain()
 
 #create secure routers
-AS1 = Secure_EBGP("128.0.0.1", 1, 1, test3_chain)
-AS2 = EBGPRouter("128.1.0.1", 2, 2)
-AS3 = EBGPRouter("128.2.0.1", 3, 3)
-AS4 = Secure_EBGP("128.3.0.1", 4, 4, test3_chain)
-AS5 = EBGPRouter("128.4.0.1", 5, 5)
-AS6 = EBGPRouter("128.5.0.1", 6, 6,)
-
-as1_n = [2,3]
-as4_n = [2,6]
-
-AS1.add_as_neighbors(as1_n)
-AS4.add_as_neighbors(as4_n)
-for block in test3_chain.chain:
-    print(block.data)
+AS1_config = ("localhost", 1, 5001)
+AS2_config = ("localhost", 2, 5002)
+AS3_config = ("localhost", 3, 5003)
+AS4_config = ("localhost", 4, 5004)
+AS5_config = ("localhost", 5, 5005)
+AS6_config = ("localhost", 6, 5006)
+AS1 = SecureEBGP(*AS1_config, test3_chain)
+AS2 = EBGPRouter(*AS2_config)
+AS3 = EBGPRouter(*AS3_config)
+AS4 = SecureEBGP(*AS4_config, test3_chain)
+AS5 = EBGPRouter(*AS5_config)
+AS6 = EBGPRouter(*AS6_config)
+AS1.add_neighbors([AS2_config, AS3_config])
+AS4.add_neighbors([AS2_config, AS6_config])
+print(test3_chain)
 
 #Secure Paths
 result8 = AS1.verify_path([1,2,4,6])
