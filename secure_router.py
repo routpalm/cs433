@@ -50,18 +50,15 @@ class SecureEBGP(EBGPRouter):
             asx_is_secure = False
             link_confirmed = False
             asx_is_secure, link_confirmed = self.confirm_neighbor(asx, asy)
-            
             if link_confirmed == True:
                 #asx has neighbor asy; mark this link as a real link;
                 path_build[path_build_index] = 1
                 path_build_index += 1
                 #asx = asy; asy = asz; check asx is neighbors with asy
                 continue
-           
             elif asx_is_secure == True and link_confirmed == False:
                 #Then clearly asx does not have a neighbor asy and cannot be verified
                 return False
-    
             elif asx_is_secure == False:
                 #asx is not a secure ebgp router. Must search asy's neighbors for asx
                 asy_is_secure, asy_link_conf = self.confirm_neighbor(asy, asx)
@@ -72,8 +69,7 @@ class SecureEBGP(EBGPRouter):
                     continue
                 else:
                     #Since there is no way to 100% ensure asx can reach asy the path cant be verified
-                    return False
-                
+                    return False 
         for i in path_build:
             if i == 0:
                 return False
@@ -129,12 +125,23 @@ class SecureEBGP(EBGPRouter):
             return None
         self.write_block_to_blockchain(data)
 
-    def find_origin(self, prefix: str):
+    def find_origin(self, prefix: str) -> int | None:
         for block in self.blockchain.chain:
             data = block.data
             if data[0] == "P" and data[1] == prefix:
                 # First block that announces a prefix "owns" it.
                 return data[2]
+        return None  # No one has announced the prefix
+
+    def routing_decision(self, route_info, route):
+        """overrides method from eBGPRouter class"""
+        origin = self.find_origin(route)
+        if origin is None:
+            return super().routing_decision(route_info, route) 
+        as_path = route_info.get('as_path', [])
+        if origin != as_path[0]:
+            return None  #< Illegal path, ignore.
+        return super().routing_decision(route_info, route) 
 
     def _advanced_feature(self, keyword: str, json_data: str):
         if keyword == "neighbor announcement":
