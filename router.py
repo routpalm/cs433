@@ -30,7 +30,12 @@ class EBGPRouter:
         # update routing table with this new route, assuming self path is the best
         as_path = [self.as_number]
         self.routing_table[route] = []
-        self._advanced_feature('route advertisement', route)
+        self._advanced_feature('route advertisement',
+            json.dumps({
+                "prefix": route,
+                "src_as_number": self.as_number,
+                "as_path": as_path
+            }))
         for neighbor in self.neighbors:
             self.send_route(route, neighbor, self.ip, as_path)
             time.sleep(1)
@@ -94,11 +99,15 @@ class EBGPRouter:
                         return  # loop->ignore
 
                     new_as_path = received_as_path + [self.as_number]
-
+                    
                     # make a routing decision (could replace or update existing route)
                     self.routing_decision(route_info, route)
                     self.log_advertisement(route, received_as_path)
-                    self._advanced_feature('received route', received_data)
+                    self._advanced_feature('received route',
+                        json.dumps({
+                            "prefix": route,
+                            "as_path": new_as_path
+                        }))
                     # forward to all neighbors except source
                     for neighbor in self.neighbors:
                         if neighbor != as_number:  # avoid sending back to the source

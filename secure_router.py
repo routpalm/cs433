@@ -103,18 +103,35 @@ class SecureEBGP(EBGPRouter):
     add neighbors will be called when a AS joins our system. It will create a neighbor block
     and add the block to the blockchain. Requires list of neighbors input.
     '''
-    def _add_as_neighbors(self, json_data: str):
-        as_list = [n[1] for n in json.loads(json_data)["neighbor_list"]]
-        data = ["N", self.as_number, as_list]
+    def _add_as_neighbors(self, data_dict: str):
+        data = ["N", self.as_number, [n[1] for n in data_dict["neighbor_list"]]]
         self.write_block_to_blockchain(data)
 
     '''
     Add an update to the blockchain.
     '''
-    def add_path_to_chain(self, prefix, src_as_number, src_ip, as_path):
-        data = ["P", prefix, src_as_number, src_ip, as_path]
+    def add_path_to_chain(self, data_dict: dict):
+        data = [
+            "P", 
+            data_dict["prefix"], 
+            data_dict["src_as_number"], 
+            data_dict["as_path"]
+        ]
         self.write_block_to_blockchain(data)
+
+    def find_origin(self, prefix: str):
+        for block in self.blockchain.chain:
+            data = block.data
+            if data[0] == "P" and data[1] == prefix:
+                # First block that announces a prefix "owns" it.
+                return data[2]
 
     def _advanced_feature(self, keyword: str, json_data: str):
         if keyword == "neighbor announcement":
-            self._add_as_neighbors(json_data)
+            self._add_as_neighbors(json.loads(json_data))
+        elif keyword == "route advertisement":
+            self.add_path_to_chain(json.loads(json_data))
+        elif keyword == "received route":
+            data_dict = json.loads(json_data)
+            data_dict["src_as_number"] = self.find_origin(data_dict["prefix"])
+            self.add_path_to_chain(data_dict)
