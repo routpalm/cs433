@@ -1,14 +1,13 @@
 from .simulation import *
 from router import *
 from secure_router import *
-from simple_blockchain import Blockchain, Block
+from simple_blockchain import Blockchain
 
 
 def sim3():
     """
     Simulation 3:
     """
-
     AS1_config = ('localhost', 1, 5001)
     AS2_config = ('localhost', 2, 5002)
     AS3_config = ('localhost', 3, 5003)
@@ -38,18 +37,18 @@ def sim3():
     AS8.add_neighbors([AS5_config, AS6_config])
     AS9.add_neighbors([AS6_config])
     for AS in [AS1, AS2, AS3, AS4, AS5, AS6, AS7, AS8, AS9]: AS.start()
-    
     AS9.advertise_route("192.168.1.0/24")
-    # print("AS 1:", router1.routing_table["192.168.1.0/24"])
-    # print("AS 2:", router2.routing_table["192.168.1.0/24"])
-    # print("AS 3:", router3.routing_table["192.168.1.0/24"])
-    # print("AS 4:", router4.routing_table["192.168.1.0/24"])
-    # print("AS 5:", router5.routing_table["192.168.1.0/24"])
-    # print("AS 6:", router6.routing_table["192.168.1.0/24"])
-    # print("AS 7:", router7.routing_table["192.168.1.0/24"])
-    # print("AS 8:", router8.routing_table["192.168.1.0/24"])
-    # print("AS 9:", router9.routing_table["192.168.1.0/24"])
     print(blockchain)
+    print("AS 1:", AS1.routing_table["192.168.1.0/24"])
+    print("AS 2:", AS2.routing_table["192.168.1.0/24"])
+    print("AS 3:", AS3.routing_table["192.168.1.0/24"])
+    print("AS 4:", AS4.routing_table["192.168.1.0/24"])
+    print("AS 5:", AS5.routing_table["192.168.1.0/24"])
+    print("AS 6:", AS6.routing_table["192.168.1.0/24"])
+    print("AS 7:", AS7.routing_table["192.168.1.0/24"])
+    print("AS 8:", AS8.routing_table["192.168.1.0/24"])
+    print("AS 9:", AS9.routing_table["192.168.1.0/24"])
     print('Simulation ended. Press control + c to end this process.')
+
 
 Simulation().add(fun=sim3, num_id=3)

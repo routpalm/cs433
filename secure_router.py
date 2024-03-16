@@ -27,9 +27,14 @@ class SecureEBGP(EBGPRouter):
         for Block in self.blockchain.chain:
             if Block.data[1] == path:
                 return True
-            
         return False
-
+    
+    def search_for_block(self, block_data):
+        for block in self.blockchain.chain:
+            if block.data == block_data:
+                return True
+        return False
+        
     def verify_path(self, path: list):
         """
         This method will take an entry (of the form Block.data) and attempt to form
@@ -117,6 +122,11 @@ class SecureEBGP(EBGPRouter):
             data_dict["src_as_number"], 
             data_dict["as_path"]
         ]
+        if not self.verify_path(data_dict["as_path"]):
+            return None
+        if self.search_for_block(data):
+            print(f'found duplicate: {data}')
+            return None
         self.write_block_to_blockchain(data)
 
     def find_origin(self, prefix: str):
@@ -131,7 +141,7 @@ class SecureEBGP(EBGPRouter):
             self._add_as_neighbors(json.loads(json_data))
         elif keyword == "route advertisement":
             self.add_path_to_chain(json.loads(json_data))
-        elif keyword == "received route":
+        elif keyword == "route update":
             data_dict = json.loads(json_data)
             data_dict["src_as_number"] = self.find_origin(data_dict["prefix"])
             self.add_path_to_chain(data_dict)

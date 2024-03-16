@@ -40,7 +40,7 @@ class EBGPRouter:
             self.send_route(route, neighbor, self.ip, as_path)
             time.sleep(1)
 
-    def send_route(self, route, neighbor_as, source_ip,as_path):
+    def send_route(self, route, neighbor_as, source_ip, as_path):
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -48,6 +48,11 @@ class EBGPRouter:
                 # print(f"AS {self.as_number} sending route {route} to {neighbor_as}")
                 route_info = json.dumps(
                     {"route": route, "as_number": self.as_number, "source_ip": source_ip, "as_path": as_path})
+                self._advanced_feature('route update',
+                    json.dumps({
+                        "prefix": route,
+                        "as_path": as_path + [neighbor_as]
+                    }))
                 s.connect((neighbor_ip, neighbor_port))
                 s.sendall(route_info.encode('utf-8'))
             except ConnectionRefusedError as e:
@@ -103,7 +108,7 @@ class EBGPRouter:
                     # make a routing decision (could replace or update existing route)
                     self.routing_decision(route_info, route)
                     self.log_advertisement(route, received_as_path)
-                    self._advanced_feature('received route',
+                    self._advanced_feature('route update',
                         json.dumps({
                             "prefix": route,
                             "as_path": new_as_path
