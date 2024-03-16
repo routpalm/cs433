@@ -118,11 +118,12 @@ class SecureEBGP(EBGPRouter):
             data_dict["src_as_number"], 
             data_dict["as_path"]
         ]
+        if data_dict["src_as_number"] != data_dict["as_path"][0]:
+            return None  #< Illegal path
         if not self.verify_path(data_dict["as_path"]):
-            return None
+            return None  #< Insecure path
         if self.search_for_block(data):
-            print(f'found duplicate: {data}')
-            return None
+            return None  #< Block already exists in blockchain
         self.write_block_to_blockchain(data)
 
     def find_origin(self, prefix: str) -> int | None:
