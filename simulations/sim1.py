@@ -6,58 +6,44 @@ def sim1():
     Simulation 1:
         Nine regular eBGP routers communicate.
     """
-    router1 = EBGPRouter('localhost', 1, 5001)
-    router2 = EBGPRouter('localhost', 2, 5002)
-    router3 = EBGPRouter('localhost', 3, 5003)
-    router4 = EBGPRouter('localhost', 4, 5004)
-    router5 = EBGPRouter('localhost', 5, 5005)
-    router6 = EBGPRouter('localhost', 6, 5006)
-    router7 = EBGPRouter('localhost', 7, 5007)
-    router8 = EBGPRouter('localhost', 8, 5008)
-    router9 = EBGPRouter('localhost', 9, 5009)
-    router1.add_neighbor('localhost', 2, 5002)  # r1 -> r2
-    router1.add_neighbor('localhost', 4, 5004)  # r1 -> r4
-    router2.add_neighbor('localhost', 1, 5001)  # r2 -> r1
-    router2.add_neighbor('localhost', 5, 5005)  # r2 -> r3
-    router2.add_neighbor('localhost', 4, 5004)  # r2 -> r4
-    router2.add_neighbor('localhost', 3, 5003)  # r2 -> r5
-    router3.add_neighbor('localhost', 2, 5002)  # r3 -> r2
-    router3.add_neighbor('localhost', 5, 5005)  # r3 -> r5
-    router4.add_neighbor('localhost', 1, 5001)  # r4 -> r1
-    router4.add_neighbor('localhost', 2, 5002)  # r4 -> r2
-    router4.add_neighbor('localhost', 5, 5005)  # r4 -> r5
-    router5.add_neighbor('localhost', 2, 5002)  # r5 -> r2
-    router5.add_neighbor('localhost', 3, 5003)  # r5 -> r3
-    router5.add_neighbor('localhost', 4, 5004)  # r5 -> r4
-    router5.add_neighbor('localhost', 6, 5006)  # r5 -> r6
-    router5.add_neighbor('localhost', 7, 5007)  # r5 -> r7
-    router5.add_neighbor('localhost', 8, 5008)  # r5 -> r8
-    router6.add_neighbor('localhost', 5, 5005)  # r6 -> r5
-    router6.add_neighbor('localhost', 8, 5008)  # r6 -> r8
-    router6.add_neighbor('localhost', 9, 5009)  # r6 -> r9
-    router7.add_neighbor('localhost', 5, 5005)  # r7 -> r5
-    router8.add_neighbor('localhost', 5, 5005)  # r8 -> r5
-    router8.add_neighbor('localhost', 6, 5006)  # r8 -> r6
-    router9.add_neighbor('localhost', 6, 5006)  # r9 -> r6
-    router1.start()
-    router2.start()
-    router3.start()
-    router4.start()
-    router5.start()
-    router6.start()
-    router7.start()
-    router8.start()
-    router9.start()
-    router9.advertise_route("192.168.1.0/24")
-    print("AS 1:", router1.routing_table["192.168.1.0/24"])
-    print("AS 2:", router2.routing_table["192.168.1.0/24"])
-    print("AS 3:", router3.routing_table["192.168.1.0/24"])
-    print("AS 4:", router4.routing_table["192.168.1.0/24"])
-    print("AS 5:", router5.routing_table["192.168.1.0/24"])
-    print("AS 6:", router6.routing_table["192.168.1.0/24"])
-    print("AS 7:", router7.routing_table["192.168.1.0/24"])
-    print("AS 8:", router8.routing_table["192.168.1.0/24"])
-    print("AS 9:", router9.routing_table["192.168.1.0/24"])
+    AS1_config = ('localhost', 1, 5001)
+    AS2_config = ('localhost', 2, 5002)
+    AS3_config = ('localhost', 3, 5003)
+    AS4_config = ('localhost', 4, 5004)
+    AS5_config = ('localhost', 5, 5005)
+    AS6_config = ('localhost', 6, 5006)
+    AS7_config = ('localhost', 7, 5007)
+    AS8_config = ('localhost', 8, 5008)
+    AS9_config = ('localhost', 9, 5009)
+    AS1 = EBGPRouter(*AS1_config)
+    AS2 = EBGPRouter(*AS2_config)
+    AS3 = EBGPRouter(*AS3_config)
+    AS4 = EBGPRouter(*AS4_config)
+    AS5 = EBGPRouter(*AS5_config)
+    AS6 = EBGPRouter(*AS6_config)
+    AS7 = EBGPRouter(*AS7_config)
+    AS8 = EBGPRouter(*AS8_config)
+    AS9 = EBGPRouter(*AS9_config)
+    AS1.add_neighbors([AS2_config, AS4_config])
+    AS2.add_neighbors([AS1_config, AS3_config, AS4_config, AS5_config])
+    AS3.add_neighbors([AS2_config, AS5_config])
+    AS4.add_neighbors([AS1_config, AS2_config, AS5_config])
+    AS5.add_neighbors([AS2_config, AS3_config, AS4_config, AS7_config, AS6_config, AS8_config])
+    AS6.add_neighbors([AS5_config, AS8_config, AS9_config])
+    AS7.add_neighbors([AS5_config])
+    AS8.add_neighbors([AS5_config, AS6_config])
+    AS9.add_neighbors([AS6_config])
+    for AS in [AS1, AS2, AS3, AS4, AS5, AS6, AS7, AS8, AS9]: AS.start()
+    AS9.advertise_route("192.168.1.0/24")
+    print("AS 1:", AS1.routing_table["192.168.1.0/24"])
+    print("AS 2:", AS2.routing_table["192.168.1.0/24"])
+    print("AS 3:", AS3.routing_table["192.168.1.0/24"])
+    print("AS 4:", AS4.routing_table["192.168.1.0/24"])
+    print("AS 5:", AS5.routing_table["192.168.1.0/24"])
+    print("AS 6:", AS6.routing_table["192.168.1.0/24"])
+    print("AS 7:", AS7.routing_table["192.168.1.0/24"])
+    print("AS 8:", AS8.routing_table["192.168.1.0/24"])
+    print("AS 9:", AS9.routing_table["192.168.1.0/24"])
     print('Simulation ended. Press control + c to end this process.')
 
 Simulation().add(fun=sim1, num_id=1)
