@@ -11,17 +11,17 @@ There are six simulations, each with a corresponding diagram outlining network t
 
 To run our code, you must do the following:
 
-# Windows
+## Windows
 `python main.py {simulation #}`
-# Mac
+## Mac
 `python3 main.py {simulation #}`
-# Example: 
+## Example: 
 `python main.py 1` - runs simulation 1
 
 Note: Simulation 6 is a special case that outputs a file called `sim6_blockchain.log`. It is a simulation on a large scale that may take time to run and produces thread errors on some machines. 
 However, it is readable (albeit a couple thousand lines) but it does indeed emulate the correct behavior. There is only one announcement that originates from NA AS 10 advertising the route 1.1.0.0. 
 It can be found in the code at line `347`.
-# Simulation Diagrams
+## Simulation Diagrams
 ![Simulation 1 Diagram](/simulations/sim1.png)
 ![Simulation 2 Diagram](/simulations/sim2.png)
 ![Simulation 3 Diagram](/simulations/sim3.png)
