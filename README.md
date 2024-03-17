@@ -18,6 +18,8 @@ To run our code, you must do the following:
 ## Example: 
 `python main.py 1` - runs simulation 1
 
+The output prints first the output of the blockchain after all announcements have been propagated. Then, it prints the routing tables of each router in the topology.
+
 Note: Simulation 6 is a special case that outputs a file called `sim6_blockchain.log`. It is a simulation on a large scale that may take time to run and produces thread errors on some machines. 
 However, it is readable (albeit a couple thousand lines) but it does indeed emulate the correct behavior. There is only one announcement that originates from NA AS 10 advertising the route 1.1.0.0. 
 It can be found in the code at line `347`.
