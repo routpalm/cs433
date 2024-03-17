@@ -8,7 +8,7 @@ import io
 
 def sim6():
     """
-    Simulation 5:
+    Simulation 6: The world.
     """
 
     # North & Latin America
@@ -340,24 +340,13 @@ def sim6():
     for AS in [EAS1, EAS2, EAS3, EAS4, EAS5, EAS6, EAS7, EAS8, EAS9, EAS10, EAS11, EAS12, EAS13, EAS14, EAS15]: AS.start()
     for AS in [MAS1, MAS2, MAS3, MAS4]: AS.start()
     for AS in [RAS1, RAS2, RAS3, RAS4, RAS5, RAS6, RAS7, RAS8]: AS.start()
-
+    for AS in [CAS1, CAS2, CAS3, CAS4]: AS.start()
+    for AS in [PAS1, PAS2, PAS3, PAS4, PAS5, PAS6, PAS7, PAS8, PAS9, PAS10, PAS11, PAS12, PAS13, PAS14, PAS15, PAS16, PAS17]: AS.start()
 
     print('this might take a while ...')
-    # Suppress print statements
-    sys.stdout = io.StringIO()
-
     NAS10.advertise_route("1.1.0.0/24")
-    SAS6.advertise_route("100.100.1.1/24")
-    FAS12.advertise_route("200.200.2.2/24")
-    EAS8.advertise_route("300.300.3.3/24")
-    MAS2.advertise_route("400.400.4.4/24")
-    RAS5.advertise_route("500.500.5.5/24")
-    CAS3.advertise_route("600.600.6.6/24")
-    PAS6.advertise_route("700.700.7.7/24")
-    
-    # Reset sys.stdout to its original value (optional)
-    sys.stdout = sys.__stdout__
-
+    with open('./simulations/sim6_blockchain.log', 'w') as f:
+        f.write(str(blockchain) +"\n")
     print('Simulation ended. Press control + c to end this process.')
 
 
