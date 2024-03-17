@@ -1,7 +1,7 @@
 '''
-    test blockchain, simplest possible (?)
-    referencing https://medium.com/pythoneers/building-a-blockchain-from-scratch-with-python-489e7116142e
-    and https://www.activestate.com/blog/how-to-build-a-blockchain-in-python/
+    referencing [1] https://medium.com/pythoneers/building-a-blockchain-from-scratch-with-python-489e7116142e
+
+    Note: the entirety of the Block and Blockchain classes (minus comments) are from [1], main is ours.
 '''
 
 
